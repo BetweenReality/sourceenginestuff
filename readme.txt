@@ -8,3 +8,7 @@ The Stanley Parable
 	Client.dll.jump - re-enables jumping as well
 	Server.dll - disables EnforceSingleProjectionRules(), re-enable sv_cheats
 	Server.dll.serious - same as above, but also skips the call to load map seriousroom
+
+Relevant Reddit Posts:
+	https://reddit.com/r/stanleyparable/comments/1b6k8ki/native_reenabled_jumping_in_the_stanley_parable/
+	https://reddit.com/r/stanleyparable/comments/1awk8pl/patched_clientdll_and_serverdll_to_increase_env/
