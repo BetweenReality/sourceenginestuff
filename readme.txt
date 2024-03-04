@@ -5,5 +5,6 @@ Portal 2
 
 The Stanley Parable
 	Client.dll - sets the env_projectedtexture limit to 8 (Soft Limit)
+	Client.dll.jump - re-enables jumping as well
 	Server.dll - disables EnforceSingleProjectionRules(), re-enable sv_cheats
 	Server.dll.serious - same as above, but also skips the call to load map seriousroom
