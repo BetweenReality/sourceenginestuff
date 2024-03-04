@@ -1,0 +1,54 @@
+Client.dll
+	// In game/client/clientshadowmgr.cpp, the method CClientShadowMgr::CalculateRenderTargetsAndSizes() uses the macro MAX_DEPTH_TEXTURE_SHADOWS to control the maximum amount of projected textures active at a time. Since macros are converted at compile time, this doesn't matter. In this method, I bypass everything else by manually moving the value 0x8 into the register at the end of the function, essentially changing the limit from 1 to 8. Of course, this number could be anything, but I think 8 is plenty. Also, after testing in-game, it appears that this number is a soft limit. After breaking the limit, the console starts spewing some errors, and the more you keep going, the worse it gets. I didn't see anything particularly bad happen because of this, but it's still better to stay below the new limit anyways. Besides, if I ever need a higher limit I can just make it higher.
+	
+	// Replace random instruction with manual value of 8
+	{The Stanley Parable} Patch Instruction:
+		{0x101f0184} AND EAX,0x7 -> MOV EAX,0x8
+	
+	{Portal 2} Patch Instruction:
+		{0x100e9114} AND EAX,0x7 -> MOV EAX,0x8
+
+
+Server.dll
+	// That isn't the whole story though. env_projectedtexture entities automatically turn off all other projected textures when they are activated. In game/server/env_projectedtexture.cpp, the method CEnvProjectedTexture::EnforceSingleProjectionRules() defines this behavior. In order to bypass this, I just jump directly to the end of the function right at the start, which means that nothing happens when this method is called, thereby fully allowing a custom projected texture limit.
+	
+	// Replace jump instruction with jump to end
+	{The Stanley Parable} Patch Instruction:
+		{0x1013e9d1} JZ 0x1013ea6c -> JMP 0x1013ea6c
+	
+	{Portal 2} Patch Instruction:
+		{0x1013e9d1} JZ 0x10143561 -> JMP 0x10143561
+	
+	// This leftover byte could have potentially caused problems, but since I am always jumping right before, the program will never access this anyways, so it should be fine. I had to use JMP because I didn't want any conditions to play a part in whether it jumps or not, which is why this extra byte exists.
+	
+	(The Stanley Parable) Leftover byte:
+		{0x1013e9d6} 00
+	
+	(Portal 2) Leftover byte:
+		{10143566} 00
+	
+	
+	// Unlocking sv_cheats (The Stanley Parable only)
+	
+	// I was able to find this by searching for functions that had "Why????" in them (Since that is what prints when you use sv_cheats 1). I then compared the function to the demo's server.dll and went from there. Searching for "bastard" got me to the areas that reset it on every map load.
+	
+	// I assume this sets sv_cheats back to 0, so just set it to 1
+	Patch Instruction:
+		{0x10166cf3} PUSH 0x0 -> PUSH 0x1
+	
+	// Skip past call to load map seriousroom. Skip this step if you want to keep the seriousroom functioning. Only do this if you want sv_cheats active when you load the game, otherwise seriousroom will load every time
+	Patch Instruction:
+		{0x10166d02} MOV ECX,dword ptr [0x107e1b38] -> JMP 0x10166d1a
+	
+	// Again, since I am jumping past this part, this is fine
+	Leftover Bytes:
+		{0x10166d04} 38 1B 7E 10
+	
+	
+	// This skips past the call to the "You sneaky bastard..." line, which also reverts sv_cheats. I couldn't just set the value to 0x1 like below, because there isn't a clear place to do so. Therefore, just skip the condition check and go directly past this part.
+	Patch Instruction:
+		{0x10166f79} JZ 0x10166f9b -> JMP 0x10166f9b
+	
+	// I assume this changes sv_cheats back to 0, but changing this wasn't enough. Maybe it only runs this part under certain conditions? I skipped this, but leaving this here just in case
+	// Patch Instruction:
+	//	{0x10166d70} PUSH 0x0 -> PUSH 0x1
